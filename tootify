@@ -39,7 +39,7 @@ def login(name)
 
   if name =~ /\A[^@]+@[^@]+\z/
     app.login_to_mastodon(name)
-  elsif name =~ /\A@.+\.bsky\..+\z/
+  elsif name =~ /\A@.+\..+\z/
     app.login_to_bluesky(name)
   elsif name =~ /\A@\w{1,15}\z/
     app.login_to_twitter(name)
