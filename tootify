@@ -29,7 +29,7 @@ def run(argv)
 end
 
 def print_help
-  puts "Usage: #{$PROGRAM_NAME} login mastodon@account | login @bluesky"
+  puts "Usage: #{$PROGRAM_NAME} login nsec... | login @bluesky"
   puts "       #{$PROGRAM_NAME} check | watch"
   exit 1
 end
@@ -37,8 +37,8 @@ end
 def login(name)
   app = Tootify.new
 
-  if name =~ /\A[^@]+@[^@]+\z/
-    app.login_to_mastodon(name)
+  if name&.start_with?('nsec')
+    app.login_to_nostr(name)
   elsif name =~ /\A@[^@]+\z/
     app.login_to_bluesky(name)
   elsif name.nil?
