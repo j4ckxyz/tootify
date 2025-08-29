@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 
 require 'bundler/setup'
-require_relative 'app/tootify'
+require_relative 'app/nootify'
 
 def run(argv)
   $stdout.sync = true
 
   options, args = argv.partition { |x| x.start_with?('-') }
 
-  app = Tootify.new
+  app = Nootify.new
 
   options.each do |o|
     if o.start_with?('--interval=')
@@ -29,16 +29,16 @@ def run(argv)
 end
 
 def print_help
-  puts "Usage: #{$PROGRAM_NAME} login mastodon@account | login @bluesky"
+  puts "Usage: #{$PROGRAM_NAME} login nsec... | login @bluesky"
   puts "       #{$PROGRAM_NAME} check | watch"
   exit 1
 end
 
 def login(name)
-  app = Tootify.new
+  app = Nootify.new
 
-  if name =~ /\A[^@]+@[^@]+\z/
-    app.login_to_mastodon(name)
+  if name&.start_with?('nsec')
+    app.login_to_nostr(name)
   elsif name =~ /\A@[^@]+\z/
     app.login_to_bluesky(name)
   elsif name.nil?
