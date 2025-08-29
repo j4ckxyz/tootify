@@ -3,7 +3,7 @@ require 'yaml'
 
 require_relative 'bluesky_account'
 require_relative 'database'
-require_relative 'mastodon_account'
+require_relative 'nostr_account'
 require_relative 'post'
 
 class Tootify
@@ -13,7 +13,7 @@ class Tootify
 
   def initialize
     @bluesky = BlueskyAccount.new
-    @mastodon = MastodonAccount.new
+    @nostr = NostrAccount.new
     @config = load_config
     @check_interval = 60
 
@@ -38,8 +38,8 @@ class Tootify
     @bluesky.login_with_password(handle, password)
   end
 
-  def login_to_mastodon(handle)
-    @mastodon.oauth_login(handle)
+  def login_to_nostr(nsec)
+    @nostr.login_with_nsec(nsec)
   end
 
   def sync
@@ -89,15 +89,15 @@ class Tootify
       records << [record['value'], rkey, like_uri]
     end
 
-    records.sort_by { |x| x[0]['createdAt'] }.each do |record, rkey, like_uri|
-      mastodon_parent_id = nil
+      records.sort_by { |x| x[0]['createdAt'] }.each do |record, rkey, like_uri|
+        nostr_parent_id = nil
 
       if reply = record['reply']
         parent_uri = reply['parent']['uri']
         parent_rkey = parent_uri.split('/')[4]
 
-        if parent_post = Post.find_by(bluesky_rkey: parent_rkey)
-          mastodon_parent_id = parent_post.mastodon_id
+          if parent_post = Post.find_by(bluesky_rkey: parent_rkey)
+            nostr_parent_id = parent_post.nostr_id
         else
           log "Skipping reply to a post that wasn't cross-posted"
           @bluesky.delete_record_at(like_uri)
@@ -105,10 +105,10 @@ class Tootify
         end
       end
 
-      response = post_to_mastodon(record, mastodon_parent_id)
+        response = post_to_nostr(record, nostr_parent_id)
       log(response)
 
-      Post.create!(bluesky_rkey: rkey, mastodon_id: response['id'])
+        Post.create!(bluesky_rkey: rkey, nostr_id: response['id'])
 
       @bluesky.delete_record_at(like_uri)
     end
@@ -121,7 +121,7 @@ class Tootify
     end
   end
 
-  def post_to_mastodon(record, mastodon_parent_id = nil)
+  def post_to_nostr(record, nostr_parent_id = nil)
     log(record)
 
     text = expand_facets(record)
@@ -146,52 +146,44 @@ class Tootify
             quote_link = text_links.first if text_links.length == 1
           end
 
-          if quote_link
-            link_to_append = quote_link
-          end
+          link_to_append = quote_link if quote_link
         end
 
         append_link(text, link_to_append) unless text.include?(link_to_append)
       end
     end
 
-    if images = attached_images(record)
-      media_ids = []
+    attachment_urls = []
 
+    if images = attached_images(record)
       images.each do |embed|
-        alt = embed['alt']
         cid = embed['image']['ref']['$link']
         mime = embed['image']['mimeType']
 
-        if alt && alt.length > @mastodon.max_alt_length
-          alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
-        end
-
         data = @bluesky.fetch_blob(cid)
 
-        uploaded_media = @mastodon.upload_media(data, cid, mime, alt)
-        media_ids << uploaded_media['id']
+        if url = @nostr.upload_media(data, cid, mime)
+          attachment_urls << url
+          append_link(text, url) unless text.include?(url)
+        end
       end
     elsif embed = attached_video(record)
-      alt = embed['alt']
       cid = embed['video']['ref']['$link']
       mime = embed['video']['mimeType']
 
-      if alt && alt.length > @mastodon.max_alt_length
-        alt = alt[0...@mastodon.max_alt_length - 3] + "(…)"
-      end
-
       data = @bluesky.fetch_blob(cid)
 
-      uploaded_media = @mastodon.upload_media(data, cid, mime, alt)
-      media_ids = [uploaded_media['id']]
+      if url = @nostr.upload_media(data, cid, mime)
+        attachment_urls << url
+        append_link(text, url) unless text.include?(url)
+      end
     end
 
     if tags = record['tags']
       text += "\n\n" + tags.map { |t| '#' + t.gsub(' ', '') }.join(' ')
     end
 
-    @mastodon.post_status(text, media_ids, mastodon_parent_id)
+    @nostr.post_status(text, attachment_urls, nostr_parent_id)
   end
 
   def fetch_record_by_at_uri(quote_uri)
