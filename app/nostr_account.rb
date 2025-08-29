@@ -1,5 +1,9 @@
 require 'yaml'
+codex/remove-mastodon-support-and-add-nostr-lpfp5f
 require 'nostr_ruby'
+=======
+require 'nostr'
+master
 require 'openssl'
 require 'base64'
 require 'net/http'
@@ -35,12 +39,19 @@ class NostrAccount
 
   def post_status(text, attachment_urls = [], parent_id = nil)
     nsec = decrypt_nsec
+codex/remove-mastodon-support-and-add-nostr-lpfp5f
     private_key = Nostr::Bech32.decode(nsec)[:data]
+=======
+    keygen = Nostr::Keygen.new
+    keypair = keygen.get_key_pair_from_private_key(Nostr::PrivateKey.from_bech32(nsec))
+    user = Nostr::User.new(keypair: keypair)
+master
 
     tags = []
     attachment_urls.each { |u| tags << ['r', u] }
     tags << ['e', parent_id] if parent_id
 
+codex/remove-mastodon-support-and-add-nostr-lpfp5f
     event = Nostr::Event.new(kind: Nostr::Kind::SHORT_NOTE, content: text, tags: tags)
     signer = Nostr::Signer.new(private_key: private_key)
     signer.sign(event)
@@ -49,6 +60,24 @@ class NostrAccount
       client = Nostr::Client.new(signer: signer, relay: url)
       client.connect
       client.publish_and_wait(event, close_on_finish: true)
+=======
+    event = user.create_event(kind: Nostr::EventKind::TEXT_NOTE, content: text, tags: tags)
+
+    relay_urls.each do |url|
+      client = Nostr::Client.new
+      relay = Nostr::Relay.new(url: url, name: url)
+      published = false
+      client.on :open do
+        client.publish(event)
+        client.close
+        published = true
+      end
+      client.on :error do |e|
+        warn "Nostr error: #{e}"
+      end
+      client.connect(relay)
+      sleep 1 until published
+master
     end
 
     { 'id' => event.id }
