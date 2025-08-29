@@ -19,6 +19,8 @@ Currently handles:
 - videos
 - threads of multiple chained posts from you
 
+If you configure a [Blossom](https://blossom.nostr.com/) server, Nootify will upload any attached images or videos there and link them from the Nostr post.
+
 
 ## Installation
 
