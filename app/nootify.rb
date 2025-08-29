@@ -1,16 +1,13 @@
-require_relative 'nootify'
+require 'io/console'
+require 'yaml'
 
-codex/remove-mastodon-support-and-add-nostr-lpfp5f
-# Backward compatibility wrapper for the old Tootify name
-Tootify = Nootify
-=======
 require_relative 'bluesky_account'
 require_relative 'database'
 require_relative 'nostr_account'
 require_relative 'post'
 
-class Tootify
-  CONFIG_FILE = File.expand_path(File.join(__dir__, '..', 'config', 'tootify.yml'))
+class Nootify
+  CONFIG_FILE = File.expand_path(File.join(__dir__, '..', 'config', 'nootify.yml'))
 
   attr_accessor :check_interval
 
@@ -311,4 +308,3 @@ class Tootify
     puts "[#{Time.now}] #{text}"
   end
 end
-master

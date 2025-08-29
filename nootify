@@ -1,18 +1,14 @@
 #!/usr/bin/env ruby
-codex/remove-mastodon-support-and-add-nostr-lpfp5f
-# Wrapper to maintain backward compatibility with the old binary name
-load File.expand_path('nootify', __dir__)
-=======
 
 require 'bundler/setup'
-require_relative 'app/tootify'
+require_relative 'app/nootify'
 
 def run(argv)
   $stdout.sync = true
 
   options, args = argv.partition { |x| x.start_with?('-') }
 
-  app = Tootify.new
+  app = Nootify.new
 
   options.each do |o|
     if o.start_with?('--interval=')
@@ -39,7 +35,7 @@ def print_help
 end
 
 def login(name)
-  app = Tootify.new
+  app = Nootify.new
 
   if name&.start_with?('nsec')
     app.login_to_nostr(name)
@@ -54,4 +50,3 @@ def login(name)
 end
 
 run(ARGV)
-master
