@@ -20,9 +20,11 @@ Currently handles:
 
 ## Installation
 
-At the moment:
+To run this tool, you need some reasonably recent version of Ruby installed – although it's recommended to use a version that's still getting maintainance updates, i.e. currently 3.2+. A recent Ruby version is likely to be preinstalled on most Linux systems, or at least available through the OS's package manager, otherwise you can install one using tools such as [RVM](https://rvm.io), [asdf](https://asdf-vm.com), [ruby-install](https://github.com/postmodern/ruby-install) or [ruby-build](https://github.com/rbenv/ruby-build) (see more installation options on [ruby-lang.org](https://www.ruby-lang.org/en/downloads/)).
 
-    git clone https://github.com/mackuba/tootify.git
+To install the app, run:
+
+    git clone https://tangled.org/mackuba.eu/tootify
     cd tootify
     bundle install
 
@@ -66,6 +68,8 @@ There is also an SQLite database file that's automatically created in `db/histor
 
 ## Credits
 
-Copyright © 2025 Kuba Suder ([@mackuba.eu](https://bsky.app/profile/mackuba.eu)).
+Copyright © 2025 Kuba Suder ([@mackuba.eu](https://bsky.app/profile/did:plc:oio4hkxaop4ao4wz2pp3f4cr)).
 
 The code is available under the terms of the [zlib license](https://choosealicense.com/licenses/zlib/) (permissive, similar to MIT).
+
+Bug reports and pull requests are welcome 😎
