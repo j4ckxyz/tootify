@@ -211,7 +211,7 @@ class Tootify
 
   def fetch_record_by_at_uri(quote_uri)
     repo, collection, rkey = quote_uri.split('/')[2..4]
-    pds = DID.new(repo).get_document.pds_endpoint
+    pds = DID.new(repo).document.pds_host
     sky = Minisky.new(pds, nil)
     resp = sky.get_request('com.atproto.repo.getRecord', { repo: repo, collection: collection, rkey: rkey })
     resp['value']

@@ -17,9 +17,7 @@ class BlueskyAccount
       exit 1
     end
 
-    pds = did.get_document.pds_endpoint.gsub('https://', '')
-
-    @sky.host = pds
+    @sky.host = did.document.pds_host
     @sky.user.id = handle
     @sky.user.pass = password
 
