@@ -317,7 +317,8 @@ class Tootify
       text << "\n"
       text << "RE: " + link
     else
-      text << ' ' unless text.end_with?(' ')
+      text << "\n" unless text.end_with?("\n")
+      text << "\n"
       text << link
     end
   end
