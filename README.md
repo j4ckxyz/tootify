@@ -20,13 +20,17 @@ Currently handles:
 
 ## Installation
 
-To run this tool, you need some reasonably recent version of Ruby installed – although it's recommended to use a version that's still getting maintainance updates, i.e. currently 3.2+. A recent Ruby version is likely to be preinstalled on most Linux systems, or at least available through the OS's package manager, otherwise you can install one using tools such as [RVM](https://rvm.io), [asdf](https://asdf-vm.com), [ruby-install](https://github.com/postmodern/ruby-install) or [ruby-build](https://github.com/rbenv/ruby-build) (see more installation options on [ruby-lang.org](https://www.ruby-lang.org/en/downloads/)).
+To run this tool, you need [Bun](https://bun.com) installed (v1.2+). You can install it with:
+
+    curl -fsSL https://bun.com/install | bash
+
+(see more installation options on [bun.com](https://bun.com/docs/installation)).
 
 To install the app, run:
 
     git clone https://tangled.org/mackuba.eu/tootify
     cd tootify
-    bundle install
+    bun install
 
 
 ## Usage
@@ -55,20 +59,29 @@ By default it checks for new skeets every 60 seconds – use the `interval` para
 
 Tootify stores configs and data in the `config` folder:
 
-* `bluesky.yml` – created when you log in, stores Bluesky user ID/password and access tokens
-* `mastodon.yml` – created when you log in, stores Mastodon user ID/password and access tokens
-* `tootify.yml` - optional additional configuration
+* `bluesky.json` – created when you log in, stores Bluesky user ID/password and access tokens
+* `mastodon.json` – created when you log in, stores Mastodon user ID/password and access tokens
+* `tootify.json` - optional additional configuration
 
-The config in `tootify.yml` currently supports one option:
+The config in `tootify.json` currently supports one option:
 
-- `extract_link_from_quotes: true` – if enabled, posts which are quotes of someone else's post which includes a link will be "collapsed" into a normal post that just includes that link directly without the quote (so the link card on Mastodon will show info about the link and not the quoted bsky.app post)
+- `{ "extract_link_from_quotes": true }` – if enabled, posts which are quotes of someone else's post which includes a link will be "collapsed" into a normal post that just includes that link directly without the quote (so the link card on Mastodon will show info about the link and not the quoted bsky.app post)
 
 There is also an SQLite database file that's automatically created in `db/history.sqlite3`. It stores a mapping between Bluesky and Mastodon post IDs, and is used to maintain reply references in threads.
 
 
+## Development
+
+The core post-transformation logic has unit tests. Run them with:
+
+    bun test
+
+
 ## Credits
 
-Copyright © 2025 Kuba Suder ([@mackuba.eu](https://bsky.app/profile/did:plc:oio4hkxaop4ao4wz2pp3f4cr)).
+Bun/TypeScript rewrite by jack ([@j4ck.xyz](https://bsky.app/profile/j4ck.xyz)).
+
+Based on the original Tootify by Kuba Suder ([@mackuba.eu](https://bsky.app/profile/did:plc:oio4hkxaop4ao4wz2pp3f4cr)), copyright © 2025.
 
 The code is available under the terms of the [zlib license](https://choosealicense.com/licenses/zlib/) (permissive, similar to MIT).
 

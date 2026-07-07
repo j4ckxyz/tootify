@@ -1,3 +1,4 @@
 .DS_Store
-config/*.yml
+config/*.json
 db/history.sqlite3*
+node_modules

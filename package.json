@@ -1,0 +1,20 @@
+{
+  "name": "tootify",
+  "version": "1.0.0",
+  "description": "A simple Bluesky-to-Mastodon cross-posting service",
+  "type": "module",
+  "module": "src/index.ts",
+  "private": true,
+  "bin": {
+    "tootify": "src/index.ts"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "test": "bun test"
+  },
+  "license": "Zlib",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}
