@@ -178,7 +178,43 @@ export class BlueskyAccount {
       collection: "app.bsky.feed.like",
       limit: 100,
     });
-    return json.records;
+    return json.records ?? [];
+  }
+
+  /**
+   * Walk your own `app.bsky.feed.post` records newest-first, stopping as soon
+   * as `shouldStop` says the page has gone past the point of interest. Paging
+   * stops there rather than reading the whole repo, so enabling crosspost-all
+   * on an account with years of history costs one or two requests per run.
+   */
+  async fetchPosts(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    shouldStop: (record: any) => boolean,
+    maxPages = 20,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Promise<any[]> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const out: any[] = [];
+    let cursor: string | undefined;
+
+    for (let page = 0; page < maxPages; page++) {
+      const json = await this.getRequest("com.atproto.repo.listRecords", {
+        repo: this.did,
+        collection: "app.bsky.feed.post",
+        limit: 100,
+        cursor,
+      });
+
+      const records = json.records ?? [];
+      for (const record of records) {
+        if (shouldStop(record)) return out;
+        out.push(record);
+      }
+
+      cursor = json.cursor;
+      if (!cursor || records.length === 0) break;
+    }
+    return out;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

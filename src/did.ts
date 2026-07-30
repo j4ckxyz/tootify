@@ -12,8 +12,13 @@ interface DidService {
 }
 
 interface DidDocument {
+  alsoKnownAs?: string[];
   service?: DidService[];
 }
+
+// DID documents change rarely and we may look up the same account many times in
+// one run, so cache resolutions for the lifetime of the process.
+const documentCache = new Map<string, Promise<DidDocument>>();
 
 /**
  * Resolve a Bluesky handle to a DID, trying the DNS TXT record first
@@ -51,7 +56,19 @@ async function resolveHandleViaWellKnown(handle: string): Promise<string | null>
 }
 
 /** Fetch and parse a DID document from the appropriate registry. */
-async function fetchDidDocument(did: string): Promise<DidDocument> {
+function fetchDidDocument(did: string): Promise<DidDocument> {
+  let cached = documentCache.get(did);
+  if (!cached) {
+    cached = fetchDidDocumentUncached(did);
+    documentCache.set(did, cached);
+    // Don't cache failures: a transient network error shouldn't poison every
+    // later lookup of the same account.
+    cached.catch(() => documentCache.delete(did));
+  }
+  return cached;
+}
+
+async function fetchDidDocumentUncached(did: string): Promise<DidDocument> {
   let url: string;
   if (did.startsWith("did:plc:")) {
     url = `https://plc.directory/${did}`;
@@ -82,4 +99,25 @@ export async function pdsHost(did: string): Promise<string> {
     throw new Error(`No PDS service endpoint in DID document for ${did}`);
   }
   return new URL(service.serviceEndpoint).host;
+}
+
+/**
+ * Resolve a DID to its current handle via the `alsoKnownAs` entry of the DID
+ * document. Returns null rather than throwing: callers always have a fallback
+ * (the handle text in the post, or the DID itself), and a mention should never
+ * be able to fail a whole cross-post.
+ */
+export async function didToHandle(did: string): Promise<string | null> {
+  try {
+    const doc = await fetchDidDocument(did);
+    for (const aka of doc.alsoKnownAs ?? []) {
+      if (typeof aka === "string" && aka.startsWith("at://")) {
+        const handle = aka.slice("at://".length).trim();
+        if (handle.length > 0) return handle.toLowerCase();
+      }
+    }
+  } catch {
+    // unresolvable DID – fall back to whatever the caller has
+  }
+  return null;
 }
